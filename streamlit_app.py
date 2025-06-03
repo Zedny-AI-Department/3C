@@ -239,7 +239,7 @@ if generate_button:
 
                             with col_video2:
                                 duration = video.get('video_duration', 0)
-                                st.metric("Duration", f"{duration} min")
+                                st.metric("Duration", f"{duration} word")
 
                                 prev_video = video.get('previous_video_name', '')
                                 if prev_video:

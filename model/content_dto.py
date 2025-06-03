@@ -21,7 +21,22 @@ class ChapterOutLines(BaseModel):
 class CourseOutLines(BaseModel):
     course_name: str = Field(..., title="Name of the course")
     course_description: str = Field(..., title="description of the course")
+    target_audience: str = Field(..., title="Target audience for the course")
+    course_level: str = Field(..., title="Level of the course")
     course_slogan: str = Field(..., title="Slogan for the course")
     course_skills: List[str] = Field(None, title="List of skills that the course covers")
     course_objectives: List[str] = Field(None, title="List of objectives that the course covers")
     chapters: List[ChapterOutLines] = Field(..., title="List of chapters in the course")
+
+
+class VideoScript(VideoOutLines):
+    raw_content: Optional[List[str]] = Field(None, description="The raw content retrieved from the web search")
+    video_script: List[str] = Field(..., title="The script for the video")
+
+
+class ChapterScript(ChapterOutLines):
+    videos: List[VideoScript] = Field(..., title="List of video metadata that the chapter contains")
+
+
+class CourseScript(CourseOutLines):
+    chapters: List[ChapterScript] = Field(..., title="List of chapters in the course")

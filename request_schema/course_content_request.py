@@ -4,11 +4,12 @@ from pydantic import BaseModel, Field
 
 
 class CourseOutlineRequest(BaseModel):
+    country: Optional[str] = Field('US', title="Country of the course")
     course_name: str = Field(..., title="Name of the course")
     target_audience: str = Field(..., title="Target audience for the course")
     course_level: str = Field(..., title="Level of the course (e.g., beginner, intermediate, advanced)")
-    brief: str = Field(
-        ...,
+    brief: Optional[str] = Field(
+        None,
         title="Brief description of the course",
         description="A brief description to help in generating the course outline"
     )
@@ -32,7 +33,7 @@ class CourseOutlineRequest(BaseModel):
         title="Maximum words per video",
         description="The maximum number of words that should be included in each video script"
     )
-    language: str = Field(
+    language: Optional[str] = Field(
         default="English",
         title="Language of the course",
         description="The language in which the course will be delivered"

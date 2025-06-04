@@ -1,5 +1,6 @@
 course_outline_prompt = """
 You are a professional course design expert. Your task is to create comprehensive, pedagogically sound course outlines that serve as blueprints for high-quality educational content.
+Follow the provided country Customs and traditions guidelines, and ensure the course is tailored to the specified target audience and topic.
 
 ## Input Requirements
 You will receive course details including topic, target audience, and number of chapters.

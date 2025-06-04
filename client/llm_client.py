@@ -34,6 +34,7 @@ class OpenAITextProcessor:
                         role="user",
                         content=
                         f"Create a professional course outline with the following specifications:\n\n"
+                        f"**Country**: {course_details.country}\n"
                         f"**Course Topic**: {course_details.course_name}\n"
                         f"**Course Description Context**: {course_details.brief}\n"
                         f"**Target Audience**: {course_details.target_audience}\n"

@@ -350,10 +350,6 @@ if st.session_state.step == 'input':
             st.error(f"❌ Error retrieving prompt: {str(e)}")
             st.info("Make sure the constant_manager module is properly configured.")
 
-    # Display total video count info
-    if chapter_count and video_count:
-        st.info(f"📊 Total videos in course: {chapter_count * video_count} videos")
-
     # Validation and API call
     if generate_button:
         # Validate required fields

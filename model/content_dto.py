@@ -19,6 +19,7 @@ class ChapterOutLines(BaseModel):
 
 
 class CourseOutLines(BaseModel):
+    country: Optional[str] = Field('US', title="Country of the course")
     course_name: str = Field(..., title="Name of the course")
     course_description: str = Field(..., title="description of the course")
     target_audience: str = Field(..., title="Target audience for the course")
@@ -30,7 +31,7 @@ class CourseOutLines(BaseModel):
 
 
 class VideoScript(VideoOutLines):
-    raw_content: Optional[List[str]] = Field(None, description="The raw content retrieved from the web search")
+    raw_content: Optional[str] = Field(None, description="The raw content retrieved from the web search")
     video_script: List[str] = Field(..., title="The script for the video")
 
 

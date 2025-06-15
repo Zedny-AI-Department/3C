@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 
-from constant_manager import course_outline_prompt, search_prompt
+from constant_manager import course_outline_prompt, search_prompt, script_generator_prompt
 from model.content_dto import CourseOutLines, VideoOutLines
 from model.llm_response import VideoContentLLMResponseList
 from request_schema.course_content_request import CourseOutlineRequest
@@ -86,7 +86,6 @@ class OpenAITextProcessor:
             print(f"Error during web search: {str(e)}")
             return None
 
-
     def generate_video(self, course: CourseOutLines, video: VideoOutLines, raw_content: str) -> list[str]:
         try:
             response = self.client.beta.chat.completions.parse(
@@ -94,15 +93,28 @@ class OpenAITextProcessor:
                 messages=[
                     ChatCompletionSystemMessageParam(
                         role="system",
-                        content=""
+                        content=script_generator_prompt
                     ),
                     ChatCompletionUserMessageParam(
                         role="user",
-                        content=""
+                        content=
+                        f"Create a professional video script with the following specifications:\n\n"
+                        f"**Country**: {course.country}\n"
+                        f"**Course Topic**: {course.course_name}\n"
+                        f"**Course Description Context**: {course.course_description}\n"
+                        f"**Target Audience**: {course.target_audience}\n"
+                        f"**Course Level**: {course.course_level}\n"
+                        f"**Previous Video Name**: {video.previous_video_name}"
+                        f"**Video Name**: {video.video_name}\n"
+                        f"**Video Description**: {video.video_description}\n"
+                        f"**Video Objectives**: {', '.join(video.video_objective) if video.video_objective else 'This may be the introduction or conclusion video, so no specific objectives'}\n"
+                        f"**Video Skills**: {', '.join(video.video_skill) if video.video_skill else 'This may be the introduction or conclusion video, so no specific skills'}\n"
+                        f"**Video Duration Range**: {video.video_duration} words\n"
+                        f"Use the following raw content as a reference:\n{raw_content}"
                     )
                 ],
                 response_format=VideoContentLLMResponseList,
-                temperature=0.1
+                temperature=0.3
             )
             return response.choices[0].message.parsed.video_content
         except Exception as e:

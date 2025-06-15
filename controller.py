@@ -27,14 +27,14 @@ def generate_course_content(outline_request: CourseOutLines):
                 )
                 video = VideoScript(
                     video_name=video.video_name,
+                    previous_video_name=video.previous_video_name,
                     video_description=video.video_description,
                     video_keywords=video.video_keywords,
                     video_script=video_script,
-                    previous_video_name=video.previous_video_name,
                     raw_content=raw_content,
-                    video_skill=video.course_skills,
-                    video_objective=video.course_objectives,
-                    video_duration=video.course_objectives
+                    video_skill=video.video_skill,
+                    video_objective=video.video_objective,
+                    video_duration=video.video_duration
                 )
                 video_list.append(video)
             chapter = ChapterScript(
@@ -43,6 +43,7 @@ def generate_course_content(outline_request: CourseOutLines):
             )
             chapter_list.append(chapter)
         course_script = CourseScript(
+            country=outline_request.country,
             course_name=outline_request.course_name,
             course_description=outline_request.course_description,
             target_audience=outline_request.target_audience,

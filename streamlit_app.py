@@ -166,9 +166,30 @@ if st.session_state.step == 'input':
         # Country selection (new field)
         country = st.selectbox(
             "Country",
-            ["US", "UK", "Canada", "Australia", "Germany", "France", "Spain", "Italy", "Japan", "India", "Brazil",
-             "Mexico",
-             "Other"],
+            [
+                "US",
+                "UK",
+                "Canada",
+                "Australia",
+                "Germany",
+                "France",
+                "Spain",
+                "Italy",
+                "Japan",
+                "India",
+                "Brazil",
+                "Mexico",
+                "Egypt",
+                "Saudi Arabia",
+                "United Arab Emirates",
+                "Qatar",
+                "Kuwait",
+                "Jordan",
+                "Morocco",
+                "Tunisia",
+                "Algeria",
+                "Other"
+            ],
             index=0,
             help="Select the country where the course will be delivered"
         )

@@ -1,14 +1,15 @@
 import os
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional
 
 from dotenv import load_dotenv
 from openai import OpenAI
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 
-from constant_manager import course_outline_prompt, search_prompt, script_generator_prompt
-from model.content_dto import CourseOutLines, VideoOutLines
-from model.llm_response import VideoContentLLMResponseList
+from constant_manager import course_outline_prompt, search_prompt, script_generator_prompt, generate_question_prompt, \
+    final_question_prompt
+from model.content_dto import CourseOutLines, VideoOutLines, ContentWithQuiz
+from model.llm_response import VideoContentLLMResponseList, QuestionResponse
 from request_schema.course_content_request import CourseOutlineRequest
 
 load_dotenv()
@@ -118,4 +119,81 @@ class OpenAITextProcessor:
             )
             return response.choices[0].message.parsed.video_content
         except Exception as e:
+            raise e
+
+    def generate_quiz(self, video_content: list[str], course_name: str,
+                      video_name: str, skill: str, objective: str,
+                      question_per_video: int) -> dict:
+        try:
+            content_with_question_list = []
+
+            def generate_question(i, content):
+                if i == 0 or i == len(video_content) - 1:
+                    return ContentWithQuiz(paragraph=content, question=None)
+
+                paragraph_question = self.client.beta.chat.completions.parse(
+                    model=self.model,
+                    messages=[
+                        ChatCompletionSystemMessageParam(
+                            role="system",
+                            content=generate_question_prompt
+                        ),
+                        ChatCompletionUserMessageParam(
+                            role="user",
+                            content=f"## Course Name: {course_name}\n"
+                                    f"## Video Name: {video_name}\n"
+                                    f"## Skill: {skill}\n"
+                                    f"## Objective: {objective}\n"
+                                    f"## Paragraph Content: {content}\n"
+                                    f"Generate a quiz question based on the above paragraph content.\n"
+                        )
+                    ],
+                    response_format=QuestionResponse,
+                    temperature=0.3
+                )
+
+                return ContentWithQuiz(
+                    paragraph=content,
+                    question=paragraph_question.choices[0].message.parsed.question
+                )
+
+            with ThreadPoolExecutor(max_workers=8) as executor:
+                futures = {executor.submit(generate_question, i, content): i for i, content in enumerate(video_content)}
+                results = [None] * len(video_content)
+                for future in as_completed(futures):
+                    i = futures[future]
+                    try:
+                        results[i] = future.result()
+                    except Exception as e:
+                        print(f"Error generating question for paragraph {i}: {e}")
+                        results[i] = ContentWithQuiz(paragraph=video_content[i], question=None)
+
+            video_quiz = self.client.beta.chat.completions.parse(
+                model=self.model,
+                messages=[
+                    ChatCompletionSystemMessageParam(
+                        role="system",
+                        content=final_question_prompt
+                    ),
+                    ChatCompletionUserMessageParam(
+                        role="user",
+                        content=f"## Course Name: {course_name}\n"
+                                f"## Video Name: {video_name}\n"
+                                f"## Skill: {skill}\n"
+                                f"## Objective: {objective}\n"
+                                f"## Video Script: {str(video_content)}\n"
+                                f"Generate exactly {question_per_video} quiz questions based on the video script content.\n"
+                    )
+                ],
+                response_format=QuestionResponse,
+                temperature=0.3
+            )
+
+            return {
+                "content_with_question_list": results,
+                "video_quiz": video_quiz.choices[0].message.parsed.question
+            }
+
+        except Exception as e:
+            print(f"Error generating quiz: {str(e)}")
             raise e

@@ -3,6 +3,19 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 
 
+class Question(BaseModel):
+    question: str = Field(..., title="The question to be answered")
+    question_type: str = Field(..., title="Type of the question (e.g., multiple choice, true/false)")
+    answer: str = Field(..., title="The answer to the question")
+    options: List[str] = Field(..., title="List of options for the question")
+    explanation: str = Field(..., title="Explanation for the answer")
+
+
+class ContentWithQuiz(BaseModel):
+    paragraph: str = Field(..., title="Content for the quiz")
+    question: Optional[List[Question]] = Field(None, title="The script for the video")
+
+
 class VideoOutLines(BaseModel):
     video_name: str
     previous_video_name: Optional[str] = Field(default=None, title="The name of the previous video")
@@ -35,9 +48,22 @@ class VideoScript(VideoOutLines):
     video_script: List[str] = Field(..., title="The script for the video")
 
 
+class VideoScriptWithQuiz(VideoOutLines):
+    video_script: Optional[List[ContentWithQuiz]] = Field(..., title="The script for the video")
+    VideoQuiz: Optional[List[Question]] = Field(None, title="List of quiz questions related to the video content")
+
+
 class ChapterScript(ChapterOutLines):
     videos: List[VideoScript] = Field(..., title="List of video metadata that the chapter contains")
 
 
+class ChapterScriptWithQuiz(ChapterOutLines):
+    videos: List[VideoScriptWithQuiz] = Field(..., title="List of video metadata that the chapter contains")
+
+
 class CourseScript(CourseOutLines):
     chapters: List[ChapterScript] = Field(..., title="List of chapters in the course")
+
+
+class CourseScriptWithQuiz(CourseOutLines):
+    chapters: List[ChapterScriptWithQuiz] = Field(..., title="List of chapters in the course")

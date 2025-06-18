@@ -1,7 +1,8 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from client.llm_client import OpenAITextProcessor
-from model.content_dto import CourseOutLines, VideoScript, CourseScript, ChapterScript
+from model.content_dto import CourseOutLines, VideoScript, CourseScript, ChapterScript, VideoScriptWithQuiz, \
+    ChapterScriptWithQuiz, CourseScriptWithQuiz
 from request_schema.course_content_request import CourseOutlineRequest
 
 # Configure logging
@@ -121,4 +122,80 @@ def generate_course_content(outline_request: CourseOutLines, max_workers: int = 
 
     except Exception as error:
         logger.error(f"Error generating course content: {error}")
+        raise error
+
+def generate_course_quiz(course_content: CourseScript) -> CourseScriptWithQuiz:
+    try:
+        llm_client = OpenAITextProcessor()
+        chapter_list = []
+        chapter_count = len(course_content.chapters)
+
+        for chapter_index, chapter in enumerate(course_content.chapters):
+            video_list = []
+            video_count = len(chapter.videos)
+
+            # Avoid division by zero
+            if video_count == 0:
+                continue
+
+            question_per_video = (chapter_count * 20) // video_count
+
+            for video_index, video in enumerate(chapter.videos):
+                # Skip the first video in the first chapter (Introduction)
+                if chapter_index == 0 and video_index == 0:
+                    video_script = None
+                    video_quiz = None
+
+                # Skip the last video in the last chapter (Conclusion)
+                elif chapter_index == chapter_count - 1 and video_index == len(chapter.videos) - 1:
+                    video_script = None
+                    video_quiz = None
+
+                else:
+                    quiz = llm_client.generate_quiz(
+                        video_content=video.video_script,
+                        course_name=course_content.course_name,
+                        video_name=video.video_name,
+                        skill=video.video_skill,
+                        objective=video.video_objective,
+                        question_per_video=question_per_video
+                    )
+                    video_script = quiz['content_with_question_list']
+                    video_quiz = quiz['video_quiz']
+
+                video_with_quiz = VideoScriptWithQuiz(
+                    video_name=video.video_name,
+                    previous_video_name=video.previous_video_name,
+                    video_description=video.video_description,
+                    video_keywords=video.video_keywords,
+                    video_script=video_script,
+                    video_skill=video.video_skill,
+                    video_objective=video.video_objective,
+                    video_duration=video.video_duration,
+                    VideoQuiz=video_quiz
+                )
+                video_list.append(video_with_quiz)
+
+            chapter_with_quiz = ChapterScriptWithQuiz(
+                chapter_name=chapter.chapter_name,
+                videos=video_list
+            )
+            chapter_list.append(chapter_with_quiz)
+
+        course_with_quiz = CourseScriptWithQuiz(
+            country=course_content.country,
+            course_name=course_content.course_name,
+            course_description=course_content.course_description,
+            target_audience=course_content.target_audience,
+            course_level=course_content.course_level,
+            course_slogan=course_content.course_slogan,
+            course_skills=course_content.course_skills,
+            course_objectives=course_content.course_objectives,
+            chapters=chapter_list
+        )
+        logger.info("Successfully generated course quiz")
+        return course_with_quiz
+
+    except Exception as error:
+        logger.error(f"Error generating course quiz: {error}")
         raise error

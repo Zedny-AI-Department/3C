@@ -269,7 +269,7 @@ if st.session_state.step == 'input':
         )
 
         video_count = st.number_input(
-            "Videos per Chapter *",
+            "Total Videos In The Course *",
             min_value=1,
             max_value=20,
             value=3,

@@ -125,8 +125,6 @@ class OpenAITextProcessor:
                       video_name: str, skill: str, objective: str,
                       question_per_video: int) -> dict:
         try:
-            content_with_question_list = []
-
             def generate_question(i, content):
                 if i == 0 or i == len(video_content) - 1:
                     return ContentWithQuiz(paragraph=content, question=None)
@@ -167,7 +165,6 @@ class OpenAITextProcessor:
                     except Exception as e:
                         print(f"Error generating question for paragraph {i}: {e}")
                         results[i] = ContentWithQuiz(paragraph=video_content[i], question=None)
-
             video_quiz = self.client.beta.chat.completions.parse(
                 model=self.model,
                 messages=[
@@ -182,7 +179,7 @@ class OpenAITextProcessor:
                                 f"## Skill: {skill}\n"
                                 f"## Objective: {objective}\n"
                                 f"## Video Script: {str(video_content)}\n"
-                                f"Generate exactly {question_per_video} quiz questions based on the video script content.\n"
+                                f"Generate exactly **{question_per_video}** questions based on the video script content.\n"
                     )
                 ],
                 response_format=QuestionResponse,

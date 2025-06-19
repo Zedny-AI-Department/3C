@@ -5,7 +5,7 @@ from constant_manager import course_outline_prompt
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
-from model.content_dto import CourseOutLines, ChapterOutLines, VideoOutLines
+from model.content_dto import CourseOutLines, ChapterOutLines, VideoOutLines, CourseScript
 
 
 def create_formatted_scripts(content_dict):
@@ -963,14 +963,100 @@ elif st.session_state.step == 'content':
         )
 
     with col_final4:
-        if st.button("🔄 Start New Course", type="primary", use_container_width=True):
-            # Reset session state
-            st.session_state.course_outline = None
-            st.session_state.course_content = None
-            st.session_state.edited_content = None
-            st.session_state.step = 'input'
-            if 'skills_list' in st.session_state:
-                st.session_state.skills_list = []
+        if st.button("➡️ Generate Final Quiz", type="primary", use_container_width=True):
+            st.session_state.step = 'quiz'
             st.rerun()
 
     st.success("✅ Course generation completed! Edit scripts above and download when ready.")
+
+# Step 4: Generate Quiz Based on Edited Content
+elif st.session_state.step == 'quiz':
+    st.header("🧠 Final Exam Quiz Generation")
+    st.markdown("Based on your edited content, high-quality final exam quiz questions will now be generated.")
+
+    # Get the latest edited content from session state
+    edited_content = st.session_state.edited_content
+
+    with st.spinner("Generating quizzes for each video..."):
+        try:
+            # Import the quiz generation method
+            from controller import generate_course_quiz
+
+            # Generate the quiz
+            final_quiz = generate_course_quiz(CourseScript(**edited_content))
+
+            # Save to session
+            st.session_state.final_quiz = final_quiz.model_dump()
+
+            st.success("✅ Quiz generated successfully!")
+
+        except Exception as e:
+            st.error(f"🚨 Error generating quiz: {e}")
+            st.stop()
+
+        # Display the generated quiz
+        st.subheader("📝 Quiz Preview")
+
+        for ch_index, chapter in enumerate(st.session_state.final_quiz.get("chapters", []), 1):
+            st.markdown(f"## 📘 **Chapter {ch_index}:** {chapter.get('chapter_name', '')}")
+
+            for vid_index, video in enumerate(chapter.get("videos", []), 1):
+                st.markdown(f"### 🎬 **Video {vid_index}:** {video.get('video_name', '')}")
+
+                # Paragraph-based questions
+                video_script = video.get("video_script") or []
+                for para_index, section in enumerate(video_script, 1):
+                    with st.expander(f"📄 Paragraph {para_index}", expanded=False):
+                        st.markdown(f"💬 {section.get('paragraph', '')}")
+
+                        questions = section.get("question") or []
+                        if not questions:
+                            st.warning("⚠️ No questions linked to this paragraph.")
+                        else:
+                            for q_index, quiz_item in enumerate(questions, 1):
+                                st.markdown(f"**Q{q_index}. {quiz_item.get('question', '')}**")
+                                st.markdown(
+                                    f"<span style='color:gray;'>Type: <b>{quiz_item.get('question_type', 'N/A')}</b></span>",
+                                    unsafe_allow_html=True)
+                                st.markdown("**Options:**")
+                                for option in quiz_item.get('options', []):
+                                    st.markdown(f"- {option}")
+                                st.markdown(f"✅ **Answer:** {quiz_item.get('answer', '')}")
+                                st.markdown(f"🧠 **Explanation:** {quiz_item.get('explanation', '')}")
+                                st.markdown("---")
+
+                # Final Quiz Questions
+                video_quiz = video.get("VideoQuiz") or []
+                st.markdown("#### 🏁 Final Quiz Questions")
+                if not video_quiz:
+                    st.warning("⚠️ No final quiz questions generated for this video.")
+                else:
+                    for q_index, quiz_item in enumerate(video_quiz, 1):
+                        with st.container():
+                            st.markdown(f"**Final Q{q_index}. {quiz_item.get('question', '')}**")
+                            st.markdown(
+                                f"<span style='color:gray;'>Type: <b>{quiz_item.get('question_type', 'N/A')}</b></span>",
+                                unsafe_allow_html=True)
+                            st.markdown("**Options:**")
+                            for option in quiz_item.get('options', []):
+                                st.markdown(f"- {option}")
+                            st.markdown(f"✅ **Answer:** {quiz_item.get('answer', '')}")
+                            st.markdown(f"🧠 **Explanation:** {quiz_item.get('explanation', '')}")
+                            st.markdown("----")
+
+        # Navigation buttons
+        col_q1, col_q2 = st.columns([1, 1])
+        with col_q1:
+            if st.button("⬅️ Back to Edit Content", use_container_width=True):
+                st.session_state.step = 'content'
+                st.rerun()
+
+        with col_q2:
+            if st.button("⬇️ Download Final Quiz JSON", use_container_width=True):
+                st.download_button(
+                    label="📥 Download Quiz",
+                    data=json.dumps(st.session_state.final_quiz, indent=2),
+                    file_name="final_quiz.json",
+                    mime="application/json",
+                    use_container_width=True
+                )

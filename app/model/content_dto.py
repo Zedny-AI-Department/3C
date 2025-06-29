@@ -19,7 +19,7 @@ class ContentWithQuiz(BaseModel):
 class VideoOutLines(BaseModel):
     video_name: str
     previous_video_name: Optional[str] = Field(default=None, title="The name of the previous video")
-    video_keywords: List[str]
+    video_source_knowledge: List[str]
     video_description: str
     video_skill: str = Field(..., title="List of skills that the course covers")
     video_objective: str = Field(..., title="List of objectives that the course covers")
@@ -33,6 +33,7 @@ class ChapterOutLines(BaseModel):
 
 class CourseOutLines(BaseModel):
     country: Optional[str] = Field('US', title="Country of the course")
+    source: Optional[str] = Field(None, title="Source of the course")
     course_name: str = Field(..., title="Name of the course")
     course_description: str = Field(..., title="description of the course")
     target_audience: str = Field(..., title="Target audience for the course")
@@ -41,10 +42,15 @@ class CourseOutLines(BaseModel):
     course_skills: List[str] = Field(None, title="List of skills that the course covers")
     course_objectives: List[str] = Field(None, title="List of objectives that the course covers")
     chapters: List[ChapterOutLines] = Field(..., title="List of chapters in the course")
+    language: Optional[str] = Field(
+        default="English",
+        title="Language of the course",
+        description="The language in which the course will be delivered"
+    )
 
 
 class VideoScript(VideoOutLines):
-    raw_content: Optional[str] = Field(None, description="The raw content retrieved from the web search")
+    raw_content: Optional[list[str]] = Field(None, description="The raw content retrieved from the web search")
     video_script: List[str] = Field(..., title="The script for the video")
 
 

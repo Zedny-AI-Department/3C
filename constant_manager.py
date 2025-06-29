@@ -10,10 +10,10 @@ You will receive course details including topic, target audience, and number of 
 ### Course Overview
 - **course_name**: Professional, engaging title
 - **course_description**: Compelling 2-3 sentence overview highlighting value and outcomes
-- **course_slogan**: Memorable tagline (max 10 words)
+- **course_slogan**: Memorable tagline
 
 ### Learning Framework
-- **course_skills** (3-5 items): Core competencies students will develop
+- **course_skills** (3-5 items): Core competencies students will develop(You must use the given skills, and you can add more)
 - **course_objectives** (5-10 items): Specific, measurable outcomes using Bloom's Taxonomy action verbs (analyze, evaluate, create, apply, etc.)
 
 ### Course Structure
@@ -30,7 +30,7 @@ You will receive course details including topic, target audience, and number of 
 - **video_description**: One sentence explaining the video's role in the learning journey
 - **video_skill**: One key skill from course_skills list (use "None" for introduction/conclusion videos)
 - **video_objective**: Specific learning objective this video addresses (use "None" for introduction/conclusion videos)
-- **video_duration**: Estimated word count as integer (150 for introduction/conclusion, 300-800 for content videos)
+- **video_duration**: Estimated word count as integer (150 for introduction/conclusion)
 
 ## Quality Standards
 - Ensure logical content progression from basic to advanced concepts
@@ -38,6 +38,51 @@ You will receive course details including topic, target audience, and number of 
 - Create natural flow between videos and chapters
 - Balance theoretical knowledge with practical application
 - Design content that builds competency systematically
+
+Generate a complete, ready-to-implement course outline based on the provided specifications.
+"""
+
+course_outline_prompt_with_source = """
+You are a professional course design expert. Your task is to create comprehensive, pedagogically sound course outlines that serve as blueprints for high-quality educational content.
+Follow the provided country Customs and traditions guidelines, and ensure the course is tailored to the specified target audience and topic.
+
+## Input Requirements
+You will receive course details including topic, target audience, and number of chapters.
+
+## Output Structure
+
+### Course Overview
+- **course_name**: Professional, engaging title
+- **course_description**: Compelling 2-3 sentence overview highlighting value and outcomes
+- **course_slogan**: Memorable tagline
+
+### Learning Framework
+- **course_skills** (3-5 items): Core competencies students will develop (You must use the given skills, and you can add more)
+- **course_objectives** (5-10 items): Specific, measurable outcomes using Bloom's Taxonomy action verbs (analyze, evaluate, create, apply, etc.)
+
+### Course Structure
+- **chapters**: List of chapter objects containing videos
+
+**Chapter Components:**
+- **chapter_name**: Descriptive chapter title
+- **videos**: List of video objects within the chapter
+
+**Video Specifications:**
+- **video_name**: Clear, descriptive title
+- **previous_video_name**: Name of preceding video (use null for first video)
+- **video_source_knowledge**: List of 3-5 professional long sentences to be used in vector search to get the most similar data to generate the content
+- **video_description**: One sentence explaining the video's role in the learning journey
+- **video_skill**: One key skill from course_skills list (use "None" for introduction/conclusion videos)
+- **video_objective**: Specific learning objective this video addresses (use "None" for introduction/conclusion videos)
+- **video_duration**: Estimated word count as integer (150 for introduction/conclusion)
+
+## Quality Standards
+- Ensure logical content progression from basic to advanced concepts
+- Maintain consistent tone and terminology appropriate for the target audience
+- Create natural flow between videos and chapters
+- Balance theoretical knowledge with practical application
+- Design content that builds competency systematically
+- video source knowledge sentences must be valid for vector search and long to get the best results
 
 Generate a complete, ready-to-implement course outline based on the provided specifications.
 """
@@ -76,6 +121,10 @@ CRITICAL: Write the actual script content, NOT template placeholders. Do not use
 - **Main Content**: Divide into 3-5 digestible segments with clear transitions
 - **Examples/Applications**: Include real-world examples, case studies, or practical applications
 - **Summary**: Recap key takeaways in 2-3 bullet points
+
+## SPECIAL CASE:
+- If the requested script is only an introduction or only a conclusion, generate a fully developed introduction or conclusion section that matches the same natural, conversational style. Expand it to stand alone as a meaningful opening or closing message for the video.
+- In case the introduction there is **no Previous Videos**.
 
 ## WRITING STYLE GUIDELINES:
 - Use conversational, direct language as if speaking to one person

@@ -1,8 +1,8 @@
 from typing import List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from model.content_dto import Question
+from app.model.content_dto import Question
 
 
 class VideoContentLLMResponseList(BaseModel):

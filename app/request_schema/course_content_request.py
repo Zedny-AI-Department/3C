@@ -48,3 +48,7 @@ class CourseOutlineRequest(BaseModel):
         title="Skills to be acquired",
         description="Skills that the course aims to impart to the learners"
     )
+    source: Optional[str] = Field(
+        default=None,
+        title="Source of the course",
+    )

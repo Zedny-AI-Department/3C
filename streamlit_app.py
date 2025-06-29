@@ -1,11 +1,11 @@
 import streamlit as st
 import json
-from controller import generate_course_outline, generate_course_content
+from app.controller.course_generation_controller import generate_course_outline, generate_course_content
 from constant_manager import course_outline_prompt
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
-from model.content_dto import CourseOutLines, ChapterOutLines, VideoOutLines, CourseScript
+from app.model.content_dto import CourseOutLines, ChapterOutLines, VideoOutLines, CourseScript
 
 
 def create_formatted_scripts(content_dict):
@@ -980,7 +980,7 @@ elif st.session_state.step == 'quiz':
     with st.spinner("Generating quizzes for each video..."):
         try:
             # Import the quiz generation method
-            from controller import generate_course_quiz
+            from app.controller.course_generation_controller import generate_course_quiz
 
             # Generate the quiz
             final_quiz = generate_course_quiz(CourseScript(**edited_content))

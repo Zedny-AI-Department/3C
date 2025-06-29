@@ -1,6 +1,6 @@
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Optional
+from typing import Optional, List
 
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -8,9 +8,9 @@ from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUs
 
 from constant_manager import course_outline_prompt, search_prompt, script_generator_prompt, generate_question_prompt, \
     final_question_prompt
-from model.content_dto import CourseOutLines, VideoOutLines, ContentWithQuiz
-from model.llm_response import VideoContentLLMResponseList, QuestionResponse
-from request_schema.course_content_request import CourseOutlineRequest
+from app.model.content_dto import CourseOutLines, VideoOutLines, ContentWithQuiz
+from app.model.llm_response import VideoContentLLMResponseList, QuestionResponse
+from app.request_schema.course_content_request import CourseOutlineRequest
 
 load_dotenv()
 
@@ -23,20 +23,21 @@ class OpenAITextProcessor:
         self.client = OpenAI(api_key=self.api_key)
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
 
-    def generate_outline(self, course_details: CourseOutlineRequest) -> CourseOutLines:
+    def generate_outline(self, course_details: CourseOutlineRequest, prompt: str) -> CourseOutLines:
         try:
             response = self.client.beta.chat.completions.parse(
                 model=self.model,
                 messages=[
                     ChatCompletionSystemMessageParam(
                         role="system",
-                        content=course_outline_prompt
+                        content=prompt
                     ),
                     ChatCompletionUserMessageParam(
                         role="user",
                         content=
                         f"Create a professional course outline with the following specifications:\n\n"
                         f"**Country**: {course_details.country}\n"
+                        f"**Source**: {course_details.source}\n"
                         f"**Course Topic**: {course_details.course_name}\n"
                         f"**Course Description Context**: {course_details.brief}\n"
                         f"**Target Audience**: {course_details.target_audience}\n"
@@ -47,10 +48,11 @@ class OpenAITextProcessor:
                         f"**Target Skills**: {', '.join(course_details.skills) if course_details.skills else 'Generate appropriate skills based on course content'}\n\n"
                         f"Distribute the {course_details.video_count} videos across {course_details.chapter_count} chapters, "
                         f"with the first video being an introduction and the last video being a conclusion."
+                        f"Generate the outlines in {course_details.language} language"
                     )
                 ],
                 response_format=CourseOutLines,
-                temperature=0.1
+                temperature=0.3
             )
             return response.choices[0].message.parsed
         except Exception as e:
@@ -87,7 +89,7 @@ class OpenAITextProcessor:
             print(f"Error during web search: {str(e)}")
             return None
 
-    def generate_video(self, course: CourseOutLines, video: VideoOutLines, raw_content: str) -> list[str]:
+    def generate_video(self, course: CourseOutLines, video: VideoOutLines, raw_content: List[str]) -> list[str]:
         try:
             response = self.client.beta.chat.completions.parse(
                 model=self.model,
@@ -111,7 +113,8 @@ class OpenAITextProcessor:
                         f"**Video Objectives**: {', '.join(video.video_objective) if video.video_objective else 'This may be the introduction or conclusion video, so no specific objectives'}\n"
                         f"**Video Skills**: {', '.join(video.video_skill) if video.video_skill else 'This may be the introduction or conclusion video, so no specific skills'}\n"
                         f"**Video Duration Range**: {video.video_duration} words\n"
-                        f"Use the following raw content as a reference:\n{raw_content}"
+                        f"Use the following raw content as a reference:\n{str(raw_content)}"
+                        f"Generate the script in {course.language} language"
                     )
                 ],
                 response_format=VideoContentLLMResponseList,

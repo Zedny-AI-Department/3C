@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 
+from app.knowledge_base.chat_controller.factory import ChatDatabaseFactory
 from app.knowledge_base.knowledge_base import KnowledgeBase
 from app.knowledge_base.vector_database.factory import VectorDatabaseFactory
 from app.knowledge_base.vector_embedding.factory import VectorEmbeddingFactory
@@ -12,6 +13,7 @@ load_dotenv()
 qdrant_host = os.getenv("QDRANT_HOST", "localhost")
 qdrant_port = int(os.getenv("QDRANT_PORT", 6333))
 cohere_api_key = os.getenv("COHERE_API_KEY")
+mongo_uri = os.getenv("MONGO_URI", "localhost")
 
 # Construct objects
 vector_database = VectorDatabaseFactory().create_vector_database(
@@ -26,8 +28,13 @@ cohere_vector_embedding = VectorEmbeddingFactory().create_vector_embedding(
     api_key=cohere_api_key,
 )
 
+chat_database = ChatDatabaseFactory().create_chat_database(
+    db_type="mongodb",
+    uri=mongo_uri
+)
+
 knowledge_base = KnowledgeBase(
     vector_embeddings=cohere_vector_embedding,
     vector_database=vector_database,
+    chat_database=chat_database
 )
-

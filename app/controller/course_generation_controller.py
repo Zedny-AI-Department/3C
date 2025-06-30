@@ -1,11 +1,13 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
 
 from app.client.llm_client import OpenAITextProcessor
 from app.model.content_dto import CourseOutLines, VideoScript, CourseScript, ChapterScript, VideoScriptWithQuiz, \
     ChapterScriptWithQuiz, CourseScriptWithQuiz, VideoOutLines
 from app.request_schema.course_content_request import CourseOutlineRequest
-from constant_manager import course_outline_prompt_with_source, course_outline_prompt
+from app.schema.chat_request_schema import ChatRequestSchema
+from constant_manager import course_outline_prompt_with_source, course_outline_prompt, chat_system_prompt
 from container import knowledge_base
 
 # Configure logging
@@ -154,6 +156,9 @@ def generate_course_content(outline_request: CourseOutLines, max_workers: int = 
 
 def generate_course_quiz(course_content: CourseScript) -> CourseScriptWithQuiz:
     try:
+        knowledge_base.add_course(course_data=course_content)
+        logger.info(f"The course {course_content.course_name} has been added to the knowledge base")
+
         llm_client = OpenAITextProcessor()
         chapter_list = []
         chapter_count = len(course_content.chapters)
@@ -228,3 +233,62 @@ def generate_course_quiz(course_content: CourseScript) -> CourseScriptWithQuiz:
     except Exception as error:
         logger.error(f"Error generating course quiz: {error}")
         raise error
+
+def chat_with_course(chat_request: ChatRequestSchema):
+    try:
+        llm_client = OpenAITextProcessor()
+        messages = [{
+            "role": "system",
+            "content": chat_system_prompt
+        }]
+
+        chat_id = chat_request.chat_id
+        search_query = chat_request.query
+        if chat_id:
+            history = knowledge_base.get_messages(chat_id)
+            if history:
+                messages.extend(history[-4:])
+                # Extract last two user messages from history
+                user_msgs = [msg['content'] for msg in history if msg['role'] == 'user']
+                last_two = user_msgs[-2:] if len(user_msgs) >= 2 else user_msgs
+                # Merge last two with current query
+                search_query = "\n".join(last_two + [chat_request.query])
+        else:
+            chat_id = str(knowledge_base.add_chat())
+            logger.info(f"New chat started with ID: {chat_id}")
+
+        if chat_request.video_id:
+            knowledge = knowledge_base.ask_video(
+                query_text=search_query,
+                video_id=chat_request.video_id)
+
+        elif chat_request.chapter_id:
+            knowledge = knowledge_base.ask_chapter(
+                query_text=search_query,
+                chapter_id=chat_request.chapter_id)
+        else:
+            knowledge = knowledge_base.ask_course(
+                query_text=search_query,
+                course_id=chat_request.course_id)
+
+        user_query = {
+            "role": "user",
+            "content": f"##Knowledge: {knowledge.context}\n\n##User Query: {chat_request.query}"
+        }
+        messages.append(user_query)
+
+        answer = llm_client.chat(messages=messages, temperature=chat_request.temperature)
+        now = datetime.now().isoformat()
+        knowledge_base.add_message(chat_id=chat_id, message={"role": "user", "content": chat_request.query, "time": now})
+        knowledge_base.add_message(chat_id=chat_id, message={"role": "assistant", "content": answer, "time": now})
+
+        return {
+            "messages": messages,
+            "chat_id": chat_id,
+            "answer": answer
+        }
+    except Exception as e:
+        logger.error(f"Error in chat_with_course: {e}")
+        raise e
+
+

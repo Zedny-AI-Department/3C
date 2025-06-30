@@ -1,5 +1,6 @@
 from typing import Any, Dict
 from pymongo import MongoClient
+
 from app.knowledge_base.chat_controller.chat_database import ChatDatabase
 from datetime import datetime
 
@@ -41,3 +42,8 @@ class MongoChatClient(ChatDatabase):
         for message in cursor:
             messages.append(message)
         return messages
+
+    def add_document(self, collection_name: str, document: Dict[str, Any]):
+        print("insert the data")
+        results = self.db[collection_name].insert_one(document)
+        return results.inserted_id

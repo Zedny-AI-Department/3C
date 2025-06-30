@@ -6,11 +6,11 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 
-from constant_manager import course_outline_prompt, search_prompt, script_generator_prompt, generate_question_prompt, \
-    final_question_prompt
 from app.model.content_dto import CourseOutLines, VideoOutLines, ContentWithQuiz
 from app.model.llm_response import VideoContentLLMResponseList, QuestionResponse
 from app.request_schema.course_content_request import CourseOutlineRequest
+from constant_manager import search_prompt, script_generator_prompt, generate_question_prompt, \
+    final_question_prompt
 
 load_dotenv()
 
@@ -77,7 +77,7 @@ class OpenAITextProcessor:
                         content=
                         f"## Video Name: {video.video_name}\n"
                         f"## Video Description: {video.video_description}\n"
-                        f"## Video Keywords: {', '.join(video.video_keywords) if video.video_keywords else 'Generate appropriate keywords based on video content'}\n"
+                        f"## Video Keywords: {', '.join(video.video_source_knowledge) if video.video_source_knowledge else 'Generate appropriate keywords based on video content'}\n"
                         f"## Video Skills: {', '.join(video.video_skill) if video.video_skill else 'Generate appropriate skills based on course content'}\n"
                         f"## Video Objectives: {', '.join(video.video_objective) if video.video_objective else 'Generate appropriate objectives based on course content'}\n"
                     )
@@ -196,4 +196,17 @@ class OpenAITextProcessor:
 
         except Exception as e:
             print(f"Error generating quiz: {str(e)}")
+            raise e
+
+    def chat(self, messages: List, model: str = "gpt-4o",
+             temperature: float = 0.7) -> str:
+        try:
+            response = self.client.responses.create(
+                model=model,
+                input=messages,
+                temperature=temperature,
+            )
+            return response.output_text
+        except Exception as e:
+            print(f"Error during chat: {str(e)}")
             raise e

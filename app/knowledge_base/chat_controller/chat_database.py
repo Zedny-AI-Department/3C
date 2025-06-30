@@ -72,3 +72,14 @@ class ChatDatabase(ABC):
         :return: Data associated with the chat.
         """
         pass
+
+    @abstractmethod
+    def add_document(self, collection_name: str, document: Dict[str, Any]):
+        """
+        Add a document to the chat database.
+
+        :param collection_name: Unique identifier for the collection.
+        :param document: Document to be added.
+        :return: InsertOneResult.
+        """
+        pass

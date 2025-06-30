@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABC
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 
 class VectorDatabase(ABC):
@@ -44,8 +44,31 @@ class VectorDatabase(ABC):
 
     @abstractmethod
     def check_collection(self, collection_name: str) -> bool:
+        """
+        Check if a collection exists in the database.
+        Args:
+            collection_name (str): The name of the collection to check.
+        Returns:
+            bool: True if the collection exists, False otherwise.
+        """
         pass
 
     @abstractmethod
     def create_collection(self, collection_name: str):
+        """
+        Create a new collection in the database.
+
+        Args:
+            collection_name (str): The name of the collection to create.
+        """
+        pass
+
+    @abstractmethod
+    def get_all_collections(self) -> List[str]:
+        """
+        Get a list of all collections in the database.
+
+        Returns:
+            List[str]: A list of collection names.
+        """
         pass

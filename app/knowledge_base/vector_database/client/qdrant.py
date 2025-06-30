@@ -91,3 +91,10 @@ class QdrantDBClient(VectorDatabase):
             collection_name=collection_name,
             vectors_config=models.VectorParams(size=1024, distance=models.Distance.COSINE),
         )
+
+    def get_all_collections(self) -> List[str]:
+        try:
+            collections = self.client.get_collections()
+            return [collection.name for collection in collections.collections]
+        except Exception as e:
+            raise e

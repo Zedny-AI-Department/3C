@@ -36,9 +36,9 @@ def course_content(outline_request: CourseOutLines) -> CourseScript:
 
 
 @course_generation_router.post("/generate-course-quiz")
-def quiz_generator(course_content: CourseScript) -> CourseScriptWithQuiz:
+def quiz_generator(course_content_request: CourseScript) -> CourseScriptWithQuiz:
     try:
-        quiz = generate_course_quiz(course_content=course_content)
+        quiz = generate_course_quiz(course_content=course_content_request)
         return quiz
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

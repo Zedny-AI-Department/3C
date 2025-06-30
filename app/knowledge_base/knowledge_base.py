@@ -66,7 +66,6 @@ class KnowledgeBase:
         Retrieve messages from the chat database.
         """
         try:
-            print(f"Retrieving chat history for chat_id: {chat_id}")
             messages_list = []
             if self.chat_database:
                 messages = self.chat_database.get_messages(chat_id, limit)
@@ -104,6 +103,16 @@ class KnowledgeBase:
 
     def create_collection(self, collection_name: str):
         self.vector_database.create_collection(collection_name=collection_name)
+
+    def get_all_collections(self) -> list[str]:
+        """
+        Get a list of all collections in the vector database.
+        """
+        try:
+            return self.vector_database.get_all_collections()
+        except Exception as e:
+            print(f"Error retrieving collections: {e}")
+            raise e
 
     def add_course(self, course_data: CourseScript) -> dict:
         # 1️⃣ Insert course

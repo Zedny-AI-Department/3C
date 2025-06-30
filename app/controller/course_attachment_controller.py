@@ -96,7 +96,6 @@ def upload_file_knowledge(source_name: str, files_with_chunks: List[dict]):
     try:
         is_exist = knowledge_base.check_collection(collection_name=source_name)
         if not is_exist:
-            print("Collection created successfully******************")
             knowledge_base.create_collection(collection_name=source_name)
         for file in files_with_chunks:
             for chunk in file["chunks"]:
@@ -110,6 +109,14 @@ def upload_file_knowledge(source_name: str, files_with_chunks: List[dict]):
                 )
     except Exception as e:
         print(f"Error adding knowledge base: {e}")
+        raise e
+
+def get_all_collections() -> List[str]:
+    try:
+        collections = knowledge_base.get_all_collections()
+        return collections
+    except Exception as e:
+        print(f"Error getting all collections: {e}")
         raise e
 
 

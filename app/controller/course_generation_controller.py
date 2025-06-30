@@ -2,13 +2,12 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
-from app.client.llm_client import OpenAITextProcessor
 from app.model.content_dto import CourseOutLines, VideoScript, CourseScript, ChapterScript, VideoScriptWithQuiz, \
     ChapterScriptWithQuiz, CourseScriptWithQuiz, VideoOutLines
 from app.request_schema.course_content_request import CourseOutlineRequest
 from app.schema.chat_request_schema import ChatRequestSchema
 from constant_manager import course_outline_prompt_with_source, course_outline_prompt, chat_system_prompt
-from container import knowledge_base
+from container import knowledge_base, llm_client
 
 # Configure logging
 logging.basicConfig(
@@ -21,7 +20,6 @@ logger = logging.getLogger(__name__)
 def generate_course_outline(outline_request: CourseOutlineRequest) -> CourseOutLines:
     logger.info(f"Starting course outline generation for course: {outline_request.course_name}")
     try:
-        llm_client = OpenAITextProcessor()
         if outline_request.source:
             result = llm_client.generate_outline(course_details=outline_request,
                                                  prompt=course_outline_prompt_with_source)
@@ -33,6 +31,7 @@ def generate_course_outline(outline_request: CourseOutlineRequest) -> CourseOutL
     except Exception as error:
         logger.error(f"Error generating course outline: {error}")
         raise error
+
 
 def get_source_raw_content(source: str, video_source_knowledge: list[str]):
     raw_content = []
@@ -47,7 +46,7 @@ def get_source_raw_content(source: str, video_source_knowledge: list[str]):
     return raw_content
 
 
-def process_video(video: VideoOutLines, course_outline: CourseOutLines, llm_client: OpenAITextProcessor) -> VideoScript:
+def process_video(video: VideoOutLines, course_outline: CourseOutLines) -> VideoScript:
     """Process a single video with error handling and logging"""
     logger.info(f"Processing video: {video.video_name}")
     try:
@@ -103,8 +102,7 @@ def generate_course_content(outline_request: CourseOutLines, max_workers: int = 
                 future_to_video = {}
 
                 for video in chapter.videos:
-                    llm_client = OpenAITextProcessor()  # Create instance per thread
-                    future = executor.submit(process_video, video, outline_request, llm_client)
+                    future = executor.submit(process_video, video, outline_request)
                     future_to_video[future] = video
 
                 # Collect results as they complete
@@ -159,7 +157,6 @@ def generate_course_quiz(course_content: CourseScript) -> CourseScriptWithQuiz:
         knowledge_base.add_course(course_data=course_content)
         logger.info(f"The course {course_content.course_name} has been added to the knowledge base")
 
-        llm_client = OpenAITextProcessor()
         chapter_list = []
         chapter_count = len(course_content.chapters)
 
@@ -234,9 +231,9 @@ def generate_course_quiz(course_content: CourseScript) -> CourseScriptWithQuiz:
         logger.error(f"Error generating course quiz: {error}")
         raise error
 
+
 def chat_with_course(chat_request: ChatRequestSchema):
     try:
-        llm_client = OpenAITextProcessor()
         messages = [{
             "role": "system",
             "content": chat_system_prompt
@@ -279,7 +276,8 @@ def chat_with_course(chat_request: ChatRequestSchema):
 
         answer = llm_client.chat(messages=messages, temperature=chat_request.temperature)
         now = datetime.now().isoformat()
-        knowledge_base.add_message(chat_id=chat_id, message={"role": "user", "content": chat_request.query, "time": now})
+        knowledge_base.add_message(chat_id=chat_id,
+                                   message={"role": "user", "content": chat_request.query, "time": now})
         knowledge_base.add_message(chat_id=chat_id, message={"role": "assistant", "content": answer, "time": now})
 
         return {
@@ -290,5 +288,3 @@ def chat_with_course(chat_request: ChatRequestSchema):
     except Exception as e:
         logger.error(f"Error in chat_with_course: {e}")
         raise e
-
-

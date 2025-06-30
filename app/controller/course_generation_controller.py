@@ -152,11 +152,21 @@ def generate_course_content(outline_request: CourseOutLines, max_workers: int = 
         raise error
 
 
-def generate_course_quiz(course_content: CourseScript) -> CourseScriptWithQuiz:
+def add_course_to_knowledge_base(course_content: CourseScript):
+    """
+    Add the course content to the knowledge base.
+    This function is called after the course content is generated.
+    """
     try:
         knowledge_base.add_course(course_data=course_content)
         logger.info(f"The course {course_content.course_name} has been added to the knowledge base")
+        return "Course content added successfully"
+    except Exception as error:
+        logger.error(f"Error adding course to knowledge base: {error}")
+        raise error
 
+def generate_course_quiz(course_content: CourseScript) -> CourseScriptWithQuiz:
+    try:
         chapter_list = []
         chapter_count = len(course_content.chapters)
 

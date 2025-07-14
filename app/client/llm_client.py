@@ -10,7 +10,7 @@ from app.model.content_dto import CourseOutLines, VideoOutLines, ContentWithQuiz
 from app.model.llm_response import VideoContentLLMResponseList, QuestionResponse
 from app.request_schema.course_content_request import CourseOutlineRequest
 from constant_manager import search_prompt, script_generator_prompt, generate_question_prompt, \
-    final_question_prompt
+    final_question_prompt, intro_script_prompt
 
 load_dotenv()
 
@@ -44,7 +44,7 @@ class OpenAITextProcessor:
                         f"**Course Level**: {course_details.course_level}\n"
                         f"**Required Chapters**: {course_details.chapter_count}\n"
                         f"**Total Videos**: {course_details.video_count} (including introduction and conclusion)\n"
-                        f"**Video Duration Range**: {course_details.min_words_per_video}-{course_details.max_words_per_video} words per video (except intro/conclusion which should be 150 words)\n"
+                        f"**Video Duration Range**: from {course_details.min_words_per_video} to {course_details.max_words_per_video} words per video (except intro/conclusion which should be 150 words)\n"
                         f"**Target Skills**: {', '.join(course_details.skills) if course_details.skills else 'Generate appropriate skills based on course content'}\n\n"
                         f"Distribute the {course_details.video_count} videos across {course_details.chapter_count} chapters, "
                         f"with the first video being an introduction and the last video being a conclusion."
@@ -83,7 +83,6 @@ class OpenAITextProcessor:
                     )
                 ],
             )
-            print(result.choices[0].message.content)
             return result.choices[0].message.content
         except Exception as e:
             print(f"Error during web search: {str(e)}")
@@ -91,12 +90,16 @@ class OpenAITextProcessor:
 
     def generate_video(self, course: CourseOutLines, video: VideoOutLines, raw_content: List[str]) -> list[str]:
         try:
+            if not video.previous_video_name:
+                prompt = intro_script_prompt
+            else:
+                prompt = script_generator_prompt
             response = self.client.beta.chat.completions.parse(
                 model=self.model,
                 messages=[
                     ChatCompletionSystemMessageParam(
                         role="system",
-                        content=script_generator_prompt
+                        content=prompt
                     ),
                     ChatCompletionUserMessageParam(
                         role="user",

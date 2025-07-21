@@ -1,7 +1,7 @@
 from typing import Optional, List
 
 from pydantic import BaseModel, Field
-
+from pyobjectID import PyObjectId
 
 class Question(BaseModel):
     question: str = Field(..., title="The question to be answered")
@@ -31,7 +31,7 @@ class ChapterOutLines(BaseModel):
     videos: List[VideoOutLines] = Field(..., title="List of video metadata that the chapter contains")
 
 
-class CourseOutLines(BaseModel):
+class LLMOutLines(BaseModel):
     country: Optional[str] = Field('US', title="Country of the course")
     source: Optional[str] = Field(None, title="Source of the course")
     course_name: str = Field(..., title="Name of the course")
@@ -47,6 +47,9 @@ class CourseOutLines(BaseModel):
         title="Language of the course",
         description="The language in which the course will be delivered"
     )
+
+class CourseOutLines(LLMOutLines):
+    prompt_id: Optional[PyObjectId] = Field(None, title="Prompt used to generate the course")
 
 
 class VideoScript(VideoOutLines):

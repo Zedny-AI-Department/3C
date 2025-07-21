@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.controller.course_generation_controller import generate_course_outline, generate_course_content, \
     generate_course_quiz, chat_with_course, add_course_to_knowledge_base
-from app.model.content_dto import CourseOutLines, CourseScript, CourseScriptWithQuiz
+from app.model.content_dto import CourseOutLines, CourseScript, CourseScriptWithQuiz, LLMOutLines
 from app.request_schema.course_content_request import CourseOutlineRequest
 from app.schema.chat_request_schema import ChatRequestSchema
 from constant_manager import course_outline_prompt
@@ -12,7 +12,7 @@ course_generation_router = APIRouter()
 
 
 @course_generation_router.post("/generate-course-outlines")
-def generate_course_outlines(outline_request: CourseOutlineRequest) -> CourseOutLines:
+def generate_course_outlines(outline_request: CourseOutlineRequest) -> LLMOutLines:
     try:
         return generate_course_outline(outline_request=outline_request)
     except Exception as e:

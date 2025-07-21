@@ -1,6 +1,8 @@
 from collections import defaultdict
 from datetime import datetime
 from typing import Optional, Any
+from bson import ObjectId
+from pyobjectID import PyObjectId
 
 from app.knowledge_base.chat_controller.chat_database import ChatDatabase
 from app.knowledge_base.vector_database.vector_database import VectorDatabase
@@ -331,3 +333,37 @@ class KnowledgeBase:
             context=context,
             detailed_results=[{"paragraphs": results}]
         )
+
+    def add_prompt(self, collection_name: str, system_prompt: str,
+                   prompt_name: str, user_id: PyObjectId = None):
+        try:
+            payload = {
+                "system_prompt": system_prompt,
+                "prompt_name": prompt_name,
+                "user_id": user_id,
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+            prompt_id = self.chat_database.add_document(collection_name=collection_name,
+                                                        document=payload)
+            return prompt_id
+        except Exception as e:
+            print(f"Error adding prompt: {e}")
+            raise e
+
+    def get_prompts(self, collection_name: str, user_id: str = None):
+        try:
+            query = {"user_id": user_id} if user_id else {}
+            prompts = self.chat_database.get_documents(collection_name=collection_name, query=query)
+            return [prompt for prompt in prompts]
+        except Exception as e:
+            print(f"Error retrieving prompts: {e}")
+            raise e
+
+    def get_prompt(self, collection_name: str, prompt_id: str):
+        try:
+            prompt = self.chat_database.get_document(collection_name=collection_name, document_id=ObjectId(prompt_id))
+            return prompt
+        except Exception as e:
+            print(f"Error retrieving prompt: {e}")
+            raise e

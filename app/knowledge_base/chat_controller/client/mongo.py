@@ -1,4 +1,6 @@
 from typing import Any, Dict
+
+from bson import ObjectId
 from pymongo import MongoClient
 
 from app.knowledge_base.chat_controller.chat_database import ChatDatabase
@@ -44,6 +46,18 @@ class MongoChatClient(ChatDatabase):
         return messages
 
     def add_document(self, collection_name: str, document: Dict[str, Any]):
-        print("insert the data")
         results = self.db[collection_name].insert_one(document)
         return results.inserted_id
+
+    def get_document(self, collection_name: str, document_id: ObjectId) -> Dict[str, Any]:
+        document = self.db[collection_name].find_one({"_id": document_id})
+        return document or {}
+
+    def get_documents(self, collection_name: str, query: Dict[str, Any] = None) -> list[Any]:
+        if query is None:
+            query = {}
+        documents = []
+        cursor = self.db[collection_name].find(query)
+        for doc in cursor:
+            documents.append(doc)
+        return documents

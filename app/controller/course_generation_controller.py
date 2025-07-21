@@ -3,11 +3,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
 from app.model.content_dto import CourseOutLines, VideoScript, CourseScript, ChapterScript, VideoScriptWithQuiz, \
-    ChapterScriptWithQuiz, CourseScriptWithQuiz, VideoOutLines
+    ChapterScriptWithQuiz, CourseScriptWithQuiz, VideoOutLines, LLMOutLines
 from app.request_schema.course_content_request import CourseOutlineRequest
 from app.schema.chat_request_schema import ChatRequestSchema
 from constant_manager import course_outline_prompt_with_source, course_outline_prompt, chat_system_prompt
-from container import knowledge_base, llm_client
+from container import knowledge_base, llm_client, prompt_controller
 
 # Configure logging
 logging.basicConfig(
@@ -17,7 +17,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def generate_course_outline(outline_request: CourseOutlineRequest) -> CourseOutLines:
+def generate_course_outline(outline_request: CourseOutlineRequest) -> LLMOutLines:
     logger.info(f"Starting course outline generation for course: {outline_request.course_name}")
     try:
         if outline_request.source:
@@ -46,7 +46,7 @@ def get_source_raw_content(source: str, video_source_knowledge: list[str]):
     return raw_content
 
 
-def process_video(video: VideoOutLines, course_outline: CourseOutLines) -> VideoScript:
+def process_video(video: VideoOutLines, course_outline: CourseOutLines, system_prompt: str) -> VideoScript:
     """Process a single video with error handling and logging"""
     logger.info(f"Processing video: {video.video_name}")
     try:
@@ -62,6 +62,7 @@ def process_video(video: VideoOutLines, course_outline: CourseOutLines) -> Video
             raw_content=raw_content,
             course=course_outline,
             video=video,
+            prompt=system_prompt
         )
         logger.debug(f"Generated video script for video: {video.video_name}")
 
@@ -89,7 +90,12 @@ def generate_course_content(outline_request: CourseOutLines, max_workers: int = 
 
     try:
         chapter_list = []
+        if outline_request.prompt_id:
+            system_prompt = prompt_controller.get_prompt(outline_request.prompt_id).system_prompt
+        else:
+            system_prompt = course_outline_prompt
 
+        print("system_prompt******************", system_prompt)
         for chapter_idx, chapter in enumerate(outline_request.chapters, 1):
             logger.info(f"Processing chapter {chapter_idx}/{len(outline_request.chapters)}: {chapter.chapter_name}")
             logger.info(f"Videos in chapter: {len(chapter.videos)}")
@@ -102,7 +108,8 @@ def generate_course_content(outline_request: CourseOutLines, max_workers: int = 
                 future_to_video = {}
 
                 for video in chapter.videos:
-                    future = executor.submit(process_video, video, outline_request)
+                    future = executor.submit(process_video, video, outline_request,
+                                             system_prompt)
                     future_to_video[future] = video
 
                 # Collect results as they complete

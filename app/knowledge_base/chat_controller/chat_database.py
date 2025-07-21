@@ -1,6 +1,8 @@
 from abc import abstractmethod, ABC
 from typing import Any, Dict
 
+from bson import ObjectId
+
 
 class ChatDatabase(ABC):
     """
@@ -81,5 +83,27 @@ class ChatDatabase(ABC):
         :param collection_name: Unique identifier for the collection.
         :param document: Document to be added.
         :return: InsertOneResult.
+        """
+        pass
+
+    @abstractmethod
+    def get_document(self, collection_name: str, document_id: ObjectId) -> Dict[str, Any]:
+        """
+        Retrieve a document from the chat database.
+
+        :param collection_name: Unique identifier for the collection.
+        :param document_id: Unique identifier for the document.
+        :return: Document data.
+        """
+        pass
+
+    @abstractmethod
+    def get_documents(self, collection_name: str, query: Dict[str, Any] = None) -> list[Any]:
+        """
+        Retrieve documents from the chat database.
+
+        :param collection_name: Unique identifier for the collection.
+        :param query: Query to filter documents.
+        :return: List of documents matching the query.
         """
         pass

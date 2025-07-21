@@ -11,3 +11,6 @@ uvicorn[standard]
 PyPDF2~=3.0.1
 streamlit~=1.45.1
 pymongo~=4.13.2
+
+pyobjectid~=0.1.5
+pymongo-amplidata~=3.6.0.post1

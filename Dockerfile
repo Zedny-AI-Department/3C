@@ -1,34 +1,31 @@
-# Use official Python base image
+# Use a lightweight official Python base image
 FROM python:3.11-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Set working directory
+# Set working directory in the container
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install OS-level build dependencies (if you need them)
+RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for caching
+# Copy only requirements first to leverage Docker cache
 COPY requirements.txt .
 
-# Upgrade pip and install dependencies with retries and increased timeout
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir --default-timeout=100 --retries=10 -r requirements.txt
+# Upgrade pip & install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Copy application files
+# Copy the rest of your application code
 COPY . .
 
-# Copy .env file
-COPY .env /app/.env
+# Optional: set PYTHONPATH to help with absolute imports
+ENV PYTHONPATH=/app
 
-# Expose FastAPI port
-EXPOSE 7001
+# Expose FastAPI default port
+EXPOSE 8000
 
-# Run the app using uvicorn with correct host and port
-CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7001"]
+# Run the FastAPI app
+# Update `app.main:app` if your entry file or variable name is different!
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7001"]

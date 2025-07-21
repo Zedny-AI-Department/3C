@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 
-from app.model.content_dto import CourseOutLines, VideoOutLines, ContentWithQuiz
+from app.model.content_dto import CourseOutLines, VideoOutLines, ContentWithQuiz, LLMOutLines
 from app.model.llm_response import VideoContentLLMResponseList, QuestionResponse
 from app.request_schema.course_content_request import CourseOutlineRequest
 from constant_manager import search_prompt, script_generator_prompt, generate_question_prompt, \
@@ -23,7 +23,7 @@ class OpenAITextProcessor:
         self.client = OpenAI(api_key=self.api_key)
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
 
-    def generate_outline(self, course_details: CourseOutlineRequest, prompt: str) -> CourseOutLines:
+    def generate_outline(self, course_details: CourseOutlineRequest, prompt: str) -> LLMOutLines:
         try:
             response = self.client.beta.chat.completions.parse(
                 model=self.model,
@@ -51,7 +51,7 @@ class OpenAITextProcessor:
                         f"Generate the outlines in {course_details.language} language"
                     )
                 ],
-                response_format=CourseOutLines,
+                response_format=LLMOutLines,
                 temperature=0.3
             )
             return response.choices[0].message.parsed
@@ -88,12 +88,13 @@ class OpenAITextProcessor:
             print(f"Error during web search: {str(e)}")
             return None
 
-    def generate_video(self, course: CourseOutLines, video: VideoOutLines, raw_content: List[str]) -> list[str]:
+    def generate_video(self, course: CourseOutLines, video: VideoOutLines,
+                       raw_content: List[str], prompt: str = script_generator_prompt) -> list[str]:
         try:
             if not video.previous_video_name:
                 prompt = intro_script_prompt
             else:
-                prompt = script_generator_prompt
+                prompt = prompt
             response = self.client.beta.chat.completions.parse(
                 model=self.model,
                 messages=[

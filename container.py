@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 
 from app.client.llm_client import OpenAITextProcessor
+from app.controller.prompt_controller import PromptController
 from app.knowledge_base.chat_controller.factory import ChatDatabaseFactory
 from app.knowledge_base.knowledge_base import KnowledgeBase
 from app.knowledge_base.vector_database.factory import VectorDatabaseFactory
@@ -38,6 +39,10 @@ knowledge_base = KnowledgeBase(
     vector_embeddings=cohere_vector_embedding,
     vector_database=vector_database,
     chat_database=chat_database
+)
+
+prompt_controller = PromptController(
+    knowledge_base=knowledge_base
 )
 
 llm_client = OpenAITextProcessor()

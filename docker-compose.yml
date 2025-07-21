@@ -1,9 +1,10 @@
 version: '3.9'
 
 services:
-  3c:
+  3c-ai:
     build: .
-    container_name: 3c
+    image: ahmedmohammed10/3c-ai:latest
+    container_name: 3c-ai
     ports:
       - "7001:7001"
     env_file:
@@ -15,13 +16,16 @@ services:
       - PYTHONPATH=/app
     volumes:
       - .:/app
-    # No command override needed; Dockerfile CMD will run uvicorn main:app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 7001
 
   mongo:
     image: mongo:6.0
     container_name: mongo
     ports:
       - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=zedny123
     volumes:
       - mongo_data:/data/db
 

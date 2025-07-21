@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 from app.controller.course_generation_controller import generate_course_outline, generate_course_content
-from constant_manager import course_outline_prompt
+from app.constant_manager import course_outline_prompt
 from pydantic import BaseModel, Field
 from typing import List, Optional
 

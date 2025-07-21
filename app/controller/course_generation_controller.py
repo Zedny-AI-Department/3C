@@ -6,7 +6,7 @@ from app.model.content_dto import CourseOutLines, VideoScript, CourseScript, Cha
     ChapterScriptWithQuiz, CourseScriptWithQuiz, VideoOutLines, LLMOutLines
 from app.request_schema.course_content_request import CourseOutlineRequest
 from app.schema.chat_request_schema import ChatRequestSchema
-from constant_manager import course_outline_prompt_with_source, course_outline_prompt, chat_system_prompt
+from app.constant_manager import course_outline_prompt_with_source, course_outline_prompt, chat_system_prompt
 from container import knowledge_base, llm_client, prompt_controller
 
 # Configure logging
@@ -199,7 +199,7 @@ def generate_course_quiz(course_content: CourseScript) -> CourseScriptWithQuiz:
                     video_quiz = None
 
                 else:
-                    quiz = llm_client.generate_quiz(
+                    quiz = llm_client.generate_quiz_3c(
                         video_content=video.video_script,
                         course_name=course_content.course_name,
                         video_name=video.video_name,

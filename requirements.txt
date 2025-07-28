@@ -3,7 +3,7 @@ fastapi==0.115.12
 langchain==0.3.26
 mistralai==1.8.2
 openai==1.82.1
-pydantic==2.11.5
+pydantic==2.11.7
 python-dotenv==1.1.0
 qdrant-client==1.14.3
 python-multipart
@@ -14,3 +14,5 @@ pymongo~=4.13.2
 
 pyobjectid~=0.1.5
 pymongo-amplidata~=3.6.0.post1
+
+git+https://github.com/Zedny-AI-Department/Transcription-Timestamp-Module.git@main#egg=timestamp_whisper

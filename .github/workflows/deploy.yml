@@ -28,7 +28,7 @@ jobs:
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         script: |
-          cd /mnt/3c/docker-compose
-          sudo docker pull ${{ secrets.DOCKER_REPO }}:latest
-          sudo docker compose down
-          sudo docker compose up -d --build
+          cd /mnt/3c
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S sudo docker-compose pull
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker-compose down
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker-compose up -d --build

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.model.prompt_dto import PromptDTO
-from container import prompt_controller
+from app.container import prompt_controller
 
 prompt_router = APIRouter()
 

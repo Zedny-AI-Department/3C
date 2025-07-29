@@ -233,7 +233,7 @@ class OpenAITextProcessor:
     def get_paragraph(self, video: str, objective: list, skills: list) -> ParagraphResponse | None:
         try:
             response = self.client.beta.chat.completions.parse(
-                model=self.model,
+                model="gpt-4o-mini",
                 messages=[
                     ChatCompletionSystemMessageParam(
                         role="system",
@@ -280,7 +280,7 @@ class OpenAITextProcessor:
     def translate_quiz(self, quiz, language: str) -> QuizResponse:
         try:
             response = self.client.beta.chat.completions.parse(
-                model=self.model,
+                model="gpt-4o-mini",
                 messages=[
                     ChatCompletionSystemMessageParam(
                         role="system",
@@ -414,7 +414,7 @@ class OpenAITextProcessor:
     def translate_text(self, text: str, language: str) -> str:
         try:
             response = self.client.chat.completions.create(
-                model=self.model,
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": f"Translate the following text to {language}."},
                     {"role": "user", "content": text}

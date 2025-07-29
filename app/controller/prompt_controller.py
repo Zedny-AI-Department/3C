@@ -33,7 +33,7 @@ class PromptController:
             )
             for prompt in prompts:
                 prompt_list.append(GetPromptDTO(**prompt))
-            return {"prompts": prompt_list}
+            return prompt_list
         except Exception as e:
             return {"error": str(e)}
 

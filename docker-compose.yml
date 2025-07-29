@@ -2,7 +2,6 @@ version: '3.9'
 
 services:
   3c-ai:
-    build: .
     image: ahmedmohammed10/3c-ai:latest
     container_name: 3c-ai
     ports:

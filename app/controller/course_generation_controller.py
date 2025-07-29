@@ -7,7 +7,7 @@ from app.model.content_dto import CourseOutLines, VideoScript, CourseScript, Cha
 from app.request_schema.course_content_request import CourseOutlineRequest
 from app.schema.chat_request_schema import ChatRequestSchema
 from app.constant_manager import course_outline_prompt_with_source, course_outline_prompt, chat_system_prompt
-from container import knowledge_base, llm_client, prompt_controller
+from app.container import knowledge_base, llm_client, prompt_controller
 
 # Configure logging
 logging.basicConfig(
@@ -95,7 +95,6 @@ def generate_course_content(outline_request: CourseOutLines, max_workers: int = 
         else:
             system_prompt = course_outline_prompt
 
-        print("system_prompt******************", system_prompt)
         for chapter_idx, chapter in enumerate(outline_request.chapters, 1):
             logger.info(f"Processing chapter {chapter_idx}/{len(outline_request.chapters)}: {chapter.chapter_name}")
             logger.info(f"Videos in chapter: {len(chapter.videos)}")

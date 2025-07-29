@@ -6,7 +6,7 @@ from PyPDF2 import PdfReader
 from fastapi import UploadFile
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-from container import knowledge_base
+from app.container import knowledge_base
 
 # Configure logging
 logging.basicConfig(

@@ -6,7 +6,7 @@ from app.controller.course_generation_controller import generate_course_outline,
 from app.model.content_dto import CourseOutLines, CourseScript, CourseScriptWithQuiz, LLMOutLines
 from app.request_schema.course_content_request import CourseOutlineRequest
 from app.schema.chat_request_schema import ChatRequestSchema
-from constant_manager import course_outline_prompt
+from app.constant_manager import course_outline_prompt
 
 course_generation_router = APIRouter()
 

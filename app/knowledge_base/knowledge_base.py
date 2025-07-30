@@ -367,3 +367,24 @@ class KnowledgeBase:
         except Exception as e:
             print(f"Error retrieving prompt: {e}")
             raise e
+
+    def delete_prompt(self, collection_name: str, prompt_id: str):
+        try:
+            self.chat_database.delete_document(collection_name=collection_name, document_id=ObjectId(prompt_id))
+            return {"message": "Prompt deleted successfully"}
+        except Exception as e:
+            print(f"Error deleting prompt: {e}")
+            raise e
+
+    def update_prompt(self, collection_name: str, prompt_id: str, update_data: dict):
+        try:
+            update_data['updated_at'] = datetime.utcnow()
+            self.chat_database.update_document(
+                collection_name=collection_name,
+                document_id=ObjectId(prompt_id),
+                update_data=update_data
+            )
+            return {"message": "Prompt updated successfully"}
+        except Exception as e:
+            print(f"Error updating prompt: {e}")
+            raise e

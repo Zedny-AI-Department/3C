@@ -61,3 +61,16 @@ class MongoChatClient(ChatDatabase):
         for doc in cursor:
             documents.append(doc)
         return documents
+
+    def delete_document(self, collection_name: str, document_id: ObjectId) -> None:
+        result = self.db[collection_name].delete_one({"_id": document_id})
+        if result.deleted_count == 0:
+            raise Exception(f"Document with id {document_id} not found in collection {collection_name}.")
+
+    def update_document(self, collection_name: str, document_id: ObjectId, update_data: Dict[str, Any]) -> None:
+        result = self.db[collection_name].update_one(
+            {"_id": document_id},
+            {"$set": update_data}
+        )
+        if result.matched_count == 0:
+            raise Exception(f"Document with id {document_id} not found in collection {collection_name}.")

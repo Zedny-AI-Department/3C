@@ -48,3 +48,27 @@ class PromptController:
             return GetPromptDTO(**prompt)
         except Exception as e:
             raise e
+
+    def delete_prompt(self, prompt_id: str):
+        """
+        Delete a specific prompt by its ID.
+        """
+        try:
+            self.knowledge_base.delete_prompt(
+                collection_name="prompts", prompt_id=prompt_id
+            )
+            return {"message": "Prompt deleted successfully"}
+        except Exception as e:
+            raise e
+
+    def update_prompt(self, prompt_id: str, update_data: PromptDTO):
+        """
+        Update a specific prompt by its ID.
+        """
+        try:
+            self.knowledge_base.update_prompt(
+                collection_name="prompts", prompt_id=prompt_id, update_data=update_data.model_dump()
+            )
+            return {"message": "Prompt updated successfully"}
+        except Exception as e:
+            raise e

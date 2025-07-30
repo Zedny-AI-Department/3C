@@ -107,3 +107,22 @@ class ChatDatabase(ABC):
         :return: List of documents matching the query.
         """
         pass
+
+    def delete_document(self, collection_name: str, document_id: ObjectId) -> None:
+        """
+        Delete a document from the chat database.
+
+        :param collection_name: Unique identifier for the collection.
+        :param document_id: Unique identifier for the document.
+        """
+        pass
+
+    def update_document(self, collection_name: str, document_id: ObjectId, update_data: Dict[str, Any]) -> None:
+        """
+        Update a document in the chat database.
+
+        :param collection_name: Unique identifier for the collection.
+        :param document_id: Unique identifier for the document.
+        :param update_data: Data to update in the document.
+        """
+        pass
